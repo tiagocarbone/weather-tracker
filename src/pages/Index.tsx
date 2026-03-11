@@ -71,8 +71,8 @@ const Index = () => {
             </h1>
           </motion.div>
           
-          <form onSubmit={handleSearch} className="flex w-full md:w-auto gap-3">
-            <div className="relative flex-1 md:w-80">
+          <form onSubmit={handleSearch} className="flex flex-wrap w-full md:w-auto gap-3">
+            <div className="relative flex-1 min-w-[200px] md:w-80">
               <Input 
                 placeholder="Buscar cidade..." 
                 value={search}
@@ -88,9 +88,11 @@ const Index = () => {
               type="button" 
               variant="outline" 
               onClick={handleGeolocation}
-              className="rounded-2xl border-white/10 bg-white/5 h-12 w-12 p-0 hover:bg-white/10"
+              className="rounded-2xl border-white/10 bg-white/5 h-12 px-6 hover:bg-white/10 flex items-center gap-2 font-semibold"
             >
-              <Navigation size={20} className="text-blue-400" />
+              <Navigation size={18} className="text-blue-400" />
+              <span className="hidden sm:inline">Usar meu local</span>
+              <span className="sm:hidden">Local</span>
             </Button>
           </form>
         </header>
