@@ -55,45 +55,46 @@ const Index = () => {
 
   return (
     <div className="min-h-screen p-4 md:p-10 text-slate-100">
-      <div className="max-w-6xl mx-auto space-y-10">
-        {/* Header */}
-        <header className="flex flex-col md:flex-row gap-6 items-center justify-between">
+      <div className="max-w-6xl mx-auto space-y-12">
+        {/* Header Reorganizado */}
+        <header className="flex flex-col gap-8 items-center">
           <motion.div 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="flex items-center gap-3"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-4"
           >
-            <div className="p-3 bg-blue-600 rounded-2xl shadow-lg shadow-blue-900/50">
-              <Cloud className="text-white" size={32} />
+            <div className="p-4 bg-blue-600 rounded-[1.5rem] shadow-2xl shadow-blue-900/50">
+              <Cloud className="text-white" size={40} />
             </div>
-            <h1 className="text-4xl font-black tracking-tighter">
+            <h1 className="text-5xl md:text-6xl font-black tracking-tighter">
               Weather<span className="text-blue-500">Tracker</span>
             </h1>
           </motion.div>
           
-          <form onSubmit={handleSearch} className="flex flex-wrap w-full md:w-auto gap-3">
-            <div className="relative flex-1 min-w-[200px] md:w-80">
+          <form onSubmit={handleSearch} className="flex flex-col md:flex-row w-full max-w-4xl gap-4">
+            <div className="relative flex-1">
               <Input 
                 placeholder="Buscar cidade..." 
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="rounded-2xl pl-12 bg-white/5 border-white/10 text-white placeholder:text-slate-500 h-12 focus-visible:ring-blue-500 focus-visible:bg-white/10 transition-all"
+                className="rounded-2xl pl-14 bg-white/5 border-white/10 text-white placeholder:text-slate-500 h-14 text-lg focus-visible:ring-blue-500 focus-visible:bg-white/10 transition-all"
               />
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={20} />
+              <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500" size={24} />
             </div>
-            <Button type="submit" className="rounded-2xl bg-blue-600 hover:bg-blue-500 h-12 px-8 font-bold shadow-lg shadow-blue-900/40">
-              Buscar
-            </Button>
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={handleGeolocation}
-              className="rounded-2xl border-white/10 bg-white/5 h-12 px-6 hover:bg-white/10 flex items-center gap-2 font-semibold"
-            >
-              <Navigation size={18} className="text-blue-400" />
-              <span className="hidden sm:inline">Usar meu local</span>
-              <span className="sm:hidden">Local</span>
-            </Button>
+            <div className="flex gap-3">
+              <Button type="submit" className="flex-1 md:flex-none rounded-2xl bg-blue-600 hover:bg-blue-500 h-14 px-10 text-lg font-bold shadow-lg shadow-blue-900/40">
+                Buscar
+              </Button>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={handleGeolocation}
+                className="flex-1 md:flex-none rounded-2xl border-white/10 bg-white/5 h-14 px-8 hover:bg-white/10 flex items-center gap-3 font-semibold text-lg"
+              >
+                <Navigation size={20} className="text-blue-400" />
+                <span>Usar meu local</span>
+              </Button>
+            </div>
           </form>
         </header>
 
