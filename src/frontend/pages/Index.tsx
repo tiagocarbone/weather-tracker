@@ -77,29 +77,40 @@ const Index = () => {
             </h1>
           </motion.div>
           
-          <form onSubmit={handleSearch} className="flex flex-col md:flex-row w-full max-w-4xl gap-4">
-            <div className="relative flex-1">
+          {/* SEARCH FORM
+              Mobile: stacked
+              Desktop (md+): 12-column grid where input spans 8 cols and buttons span 4 cols,
+              so they visually align with the content columns below.
+          */}
+          <form onSubmit={handleSearch} className="w-full grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+            <div className="relative md:col-span-8">
               <Input 
                 placeholder="Buscar cidade..." 
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="rounded-2xl pl-14 bg-white/5 border-white/10 text-white placeholder:text-slate-500 h-14 text-lg focus-visible:ring-blue-500 focus-visible:bg-white/10 transition-all"
+                className="rounded-2xl pl-14 bg-white/5 border-white/10 text-white placeholder:text-slate-500 h-14 text-lg focus-visible:ring-blue-500 focus-visible:bg-white/10 transition-all w-full"
               />
               <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500" size={24} />
             </div>
-            <div className="flex gap-3">
-              <Button type="submit" className="flex-1 md:flex-none rounded-2xl bg-blue-600 hover:bg-blue-500 h-14 px-10 text-lg font-bold shadow-lg shadow-blue-900/40">
-                Buscar
-              </Button>
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={handleGeolocation}
-                className="flex-1 md:flex-none rounded-2xl border-white/10 bg-white/5 h-14 px-8 hover:bg-white/10 flex items-center gap-3 font-semibold text-lg"
-              >
-                <Navigation size={20} className="text-blue-400" />
-                <span>Usar meu local</span>
-              </Button>
+
+            <div className="md:col-span-4">
+              <div className="flex flex-col md:flex-row gap-3 w-full">
+                <Button
+                  type="submit"
+                  className="w-full md:w-auto flex-1 rounded-2xl bg-blue-600 hover:bg-blue-500 h-14 px-10 text-lg font-bold shadow-lg shadow-blue-900/40"
+                >
+                  Buscar
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={handleGeolocation}
+                  className="w-full md:w-auto flex-1 rounded-2xl border-white/10 bg-white/5 h-14 px-8 hover:bg-white/10 flex items-center gap-3 font-semibold text-lg"
+                >
+                  <Navigation size={20} className="text-blue-400" />
+                  <span>Usar meu local</span>
+                </Button>
+              </div>
             </div>
           </form>
         </header>
