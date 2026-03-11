@@ -3,12 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Navigation, History, Star } from 'lucide-react';
+import { Search, Navigation, History, Star, Cloud } from 'lucide-react';
 import { useWeather, useForecast } from '@/hooks/useWeather';
 import WeatherCard from '@/components/WeatherCard';
 import { showSuccess, showError } from '@/utils/toast';
 import { MadeWithDyad } from "@/components/made-with-dyad";
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 const Index = () => {
   const [search, setSearch] = useState('');
@@ -39,126 +39,139 @@ const Index = () => {
 
   const handleGeolocation = () => {
     if (!navigator.geolocation) {
-      showError("Geolocalização não suportada pelo seu navegador.");
+      showError("Geolocalização não suportada.");
       return;
     }
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
         setCity('');
-        setCoords({
-          lat: position.coords.latitude,
-          lon: position.coords.longitude
-        });
-        showSuccess("Localização obtida com sucesso!");
+        setCoords({ lat: position.coords.latitude, lon: position.coords.longitude });
+        showSuccess("Localização obtida!");
       },
-      () => showError("Não foi possível obter sua localização.")
+      () => showError("Erro ao obter localização.")
     );
   };
 
   return (
-    <div className="min-h-screen bg-[#F0F4F8] p-4 md:p-8 font-sans">
-      <div className="max-w-4xl mx-auto space-y-8">
-        {/* Header & Search */}
-        <header className="flex flex-col md:flex-row gap-4 items-center justify-between">
-          <motion.h1 
-            initial={{ x: -20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            className="text-4xl font-black text-slate-800 tracking-tight"
+    <div className="min-h-screen p-4 md:p-10 text-slate-100">
+      <div className="max-w-6xl mx-auto space-y-10">
+        {/* Header */}
+        <header className="flex flex-col md:flex-row gap-6 items-center justify-between">
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex items-center gap-3"
           >
-            Sky<span className="text-blue-500">Buddy</span>
-          </motion.h1>
+            <div className="p-3 bg-blue-600 rounded-2xl shadow-lg shadow-blue-900/50">
+              <Cloud className="text-white" size={32} />
+            </div>
+            <h1 className="text-4xl font-black tracking-tighter">
+              Sky<span className="text-blue-500">Buddy</span>
+            </h1>
+          </motion.div>
           
-          <form onSubmit={handleSearch} className="flex w-full md:w-auto gap-2">
-            <div className="relative flex-1 md:w-64">
+          <form onSubmit={handleSearch} className="flex w-full md:w-auto gap-3">
+            <div className="relative flex-1 md:w-80">
               <Input 
                 placeholder="Buscar cidade..." 
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="rounded-full pl-10 bg-white border-none shadow-sm focus-visible:ring-blue-400"
+                className="rounded-2xl pl-12 bg-white/5 border-white/10 text-white placeholder:text-slate-500 h-12 focus-visible:ring-blue-500 focus-visible:bg-white/10 transition-all"
               />
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={20} />
             </div>
-            <Button type="submit" className="rounded-full bg-blue-500 hover:bg-blue-600 shadow-lg shadow-blue-200">
+            <Button type="submit" className="rounded-2xl bg-blue-600 hover:bg-blue-500 h-12 px-8 font-bold shadow-lg shadow-blue-900/40">
               Buscar
             </Button>
             <Button 
               type="button" 
               variant="outline" 
               onClick={handleGeolocation}
-              className="rounded-full border-none bg-white shadow-sm hover:bg-slate-50"
+              className="rounded-2xl border-white/10 bg-white/5 h-12 w-12 p-0 hover:bg-white/10"
             >
-              <Navigation size={18} />
+              <Navigation size={20} className="text-blue-400" />
             </Button>
           </form>
         </header>
 
-        <main className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Weather Display */}
-          <div className="lg:col-span-2 space-y-6">
+        <main className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+          {/* Main Content */}
+          <div className="lg:col-span-8 space-y-10">
             {isLoading ? (
-              <div className="h-96 bg-white/50 animate-pulse rounded-[2rem]" />
+              <div className="h-[500px] bg-white/5 animate-pulse rounded-[2.5rem] border border-white/5" />
             ) : error ? (
-              <div className="p-8 bg-red-50 text-red-500 rounded-3xl text-center">
-                Cidade não encontrada. Tente novamente!
+              <div className="p-12 bg-red-500/10 border border-red-500/20 text-red-400 rounded-[2.5rem] text-center font-medium">
+                Cidade não encontrada. Verifique o nome e tente novamente.
               </div>
             ) : (
               <WeatherCard data={weather} />
             )}
 
-            {/* Forecast Section */}
-            <div className="bg-white rounded-[2rem] p-6 shadow-sm">
-              <h3 className="text-xl font-bold mb-4 text-slate-700">Próximos Dias</h3>
-              <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+            {/* Forecast */}
+            <section className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-[2.5rem] p-8">
+              <h3 className="text-2xl font-bold mb-8 flex items-center gap-3">
+                <span className="w-2 h-8 bg-blue-500 rounded-full" />
+                Previsão Semanal
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
                 {forecast?.list?.filter((_: any, i: number) => i % 8 === 0).map((item: any) => (
-                  <div key={item.dt} className="flex-shrink-0 flex flex-col items-center p-4 bg-slate-50 rounded-2xl min-w-[100px]">
-                    <span className="text-sm font-medium text-slate-500">
+                  <motion.div 
+                    key={item.dt}
+                    whileHover={{ y: -5 }}
+                    className="flex flex-col items-center p-6 bg-white/5 rounded-3xl border border-white/5 hover:bg-white/10 transition-colors"
+                  >
+                    <span className="text-sm font-bold text-blue-200/50 uppercase tracking-wider mb-3">
                       {new Date(item.dt * 1000).toLocaleDateString('pt-BR', { weekday: 'short' })}
                     </span>
-                    <div className="my-2">
-                      <img 
-                        src={`https://openweathermap.org/img/wn/${item.weather[0].icon}.png`} 
-                        alt="icon"
-                        className="w-10 h-10"
-                      />
-                    </div>
-                    <span className="font-bold text-slate-800">{Math.round(item.main.temp)}°</span>
-                  </div>
+                    <img 
+                      src={`https://openweathermap.org/img/wn/${item.weather[0].icon}@2x.png`} 
+                      alt="weather"
+                      className="w-16 h-16 drop-shadow-md"
+                    />
+                    <span className="text-2xl font-black mt-2">{Math.round(item.main.temp)}°</span>
+                  </motion.div>
                 ))}
               </div>
-            </div>
+            </section>
           </div>
 
-          {/* Sidebar: History & Favorites */}
-          <aside className="space-y-6">
-            <div className="bg-white rounded-[2rem] p-6 shadow-sm">
-              <div className="flex items-center gap-2 mb-4 text-slate-700">
-                <History size={20} />
-                <h3 className="font-bold">Histórico</h3>
+          {/* Sidebar */}
+          <aside className="lg:col-span-4 space-y-8">
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-[2.5rem] p-8">
+              <div className="flex items-center gap-3 mb-6">
+                <History size={22} className="text-blue-400" />
+                <h3 className="text-xl font-bold">Recentes</h3>
               </div>
-              <div className="space-y-2">
-                {history.length === 0 && <p className="text-sm text-slate-400">Nenhuma busca recente.</p>}
+              <div className="space-y-3">
+                {history.length === 0 && <p className="text-slate-500 text-sm italic">Nenhuma busca recente.</p>}
                 {history.map((item) => (
                   <button
                     key={item}
                     onClick={() => setCity(item)}
-                    className="w-full text-left px-4 py-2 rounded-xl hover:bg-slate-50 text-slate-600 text-sm transition-colors capitalize"
+                    className="w-full text-left px-5 py-4 rounded-2xl bg-white/5 hover:bg-blue-600/20 border border-white/5 hover:border-blue-500/30 text-slate-300 font-medium transition-all capitalize flex justify-between items-center group"
                   >
                     {item}
+                    <Search size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-[2rem] p-6 text-white shadow-lg shadow-blue-100">
-              <div className="flex items-center gap-2 mb-4">
-                <Star size={20} fill="white" />
-                <h3 className="font-bold">Favoritos</h3>
+            <div className="bg-gradient-to-br from-blue-600 to-indigo-800 rounded-[2.5rem] p-8 text-white shadow-2xl shadow-blue-900/20 relative overflow-hidden group">
+              <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all" />
+              <div className="relative z-10">
+                <div className="flex items-center gap-3 mb-4">
+                  <Star size={24} className="text-yellow-400 fill-yellow-400" />
+                  <h3 className="text-xl font-bold">Favoritos</h3>
+                </div>
+                <p className="text-blue-100/70 text-sm leading-relaxed mb-6">
+                  Mantenha suas cidades mais importantes sempre à mão.
+                </p>
+                <Button variant="secondary" className="w-full rounded-2xl bg-white/10 border-none text-white hover:bg-white/20 h-12 font-bold backdrop-blur-md">
+                  Salvar {weather?.name || 'Cidade'}
+                </Button>
               </div>
-              <p className="text-sm opacity-80 mb-4">Salve suas cidades favoritas para acesso rápido.</p>
-              <Button variant="secondary" className="w-full rounded-xl bg-white/20 border-none text-white hover:bg-white/30">
-                Adicionar {weather?.name || 'Cidade'}
-              </Button>
             </div>
           </aside>
         </main>
