@@ -67,7 +67,7 @@ const Index = () => {
               <Cloud className="text-white" size={32} />
             </div>
             <h1 className="text-4xl font-black tracking-tighter">
-              Sky<span className="text-blue-500">Buddy</span>
+              Weather<span className="text-blue-500">Tracker</span>
             </h1>
           </motion.div>
           
