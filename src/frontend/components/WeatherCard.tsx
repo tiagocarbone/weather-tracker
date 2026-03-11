@@ -3,6 +3,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import WeatherIcon from './WeatherIcon';
+import WeatherBackground from './WeatherBackground';
 import { motion } from 'framer-motion';
 import { Thermometer, Droplets, Wind, MapPin } from 'lucide-react';
 
@@ -30,8 +31,11 @@ const WeatherCard = ({ data }: WeatherCardProps) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
     >
-      <Card className={`overflow-hidden border border-white/10 shadow-2xl bg-gradient-to-br ${bgGradient} text-white rounded-[2rem]`}>
-        <CardContent className="p-8">
+      <Card className={`relative overflow-hidden border border-white/10 shadow-2xl bg-gradient-to-br ${bgGradient} text-white rounded-[2rem]`}>
+        {/* Fundo Animado Dinâmico */}
+        <WeatherBackground code={code} />
+
+        <CardContent className="p-8 relative z-10">
           <div className="flex justify-between items-start">
             <div>
               <div className="flex items-center gap-2 mb-1">
