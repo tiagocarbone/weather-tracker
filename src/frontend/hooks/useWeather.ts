@@ -1,60 +1,76 @@
 "use client";
 
 import { useQuery } from '@tanstack/react-query';
-import { showError } from '@/utils/toast';
 
-const API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY;
-const BASE_URL = 'https://api.openweathermap.org/data/2.5';
+const WEATHER_URL = 'https://api.open-meteo.com/v1/forecast';
+const GEO_URL = 'https://geocoding-api.open-meteo.com/v1/search';
 
 export const useWeather = (city: string | null, coords?: { lat: number; lon: number } | null) => {
   return useQuery({
-    queryKey: ['weather', city, coords],
+    queryKey: ['weather-data', city, coords],
     queryFn: async () => {
-      if (!API_KEY) {
-        showError("API Key do OpenWeather não configurada!");
-        throw new Error("Missing API Key");
+      let lat = coords?.lat;
+      let lon = coords?.lon;
+      let cityName = city;
+
+      // Geocoding: transforma nome da cidade em coordenadas
+      if (!lat && !lon && city) {
+        const geoRes = await fetch(`${GEO_URL}?name=${encodeURIComponent(city)}&count=1&language=pt&format=json`);
+        const geoData = await geoRes.json();
+        
+        if (!geoData.results || geoData.results.length === 0) {
+          throw new Error('Cidade não encontrada');
+        }
+        
+        lat = geoData.results[0].latitude;
+        lon = geoData.results[0].longitude;
+        cityName = geoData.results[0].name;
       }
 
-      let url = `${BASE_URL}/weather?appid=${API_KEY}&units=metric&lang=pt_br`;
+      if (lat === undefined || lon === undefined) return null;
+
+      // Busca clima atual e previsão diária
+      const url = `${WEATHER_URL}?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,pressure_msl,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto`;
       
-      if (coords) {
-        url += `&lat=${coords.lat}&lon=${coords.lon}`;
-      } else if (city) {
-        url += `&q=${city}`;
-      } else {
-        return null;
-      }
-
       const response = await fetch(url);
-      if (!response.ok) throw new Error('Cidade não encontrada');
-      return response.json();
-    },
-    enabled: !!city || !!coords,
-    staleTime: 1000 * 60 * 15, // Cache de 15 minutos (Simulando estratégia Redis)
-  });
-};
-
-export const useForecast = (city: string | null, coords?: { lat: number; lon: number } | null) => {
-  return useQuery({
-    queryKey: ['forecast', city, coords],
-    queryFn: async () => {
-      if (!API_KEY) return null;
+      if (!response.ok) throw new Error('Erro ao buscar clima');
       
-      let url = `${BASE_URL}/forecast?appid=${API_KEY}&units=metric&lang=pt_br`;
+      const data = await response.json();
       
-      if (coords) {
-        url += `&lat=${coords.lat}&lon=${coords.lon}`;
-      } else if (city) {
-        url += `&q=${city}`;
-      } else {
-        return null;
-      }
-
-      const response = await fetch(url);
-      if (!response.ok) throw new Error('Previsão não encontrada');
-      return response.json();
+      // Normalização dos dados para os componentes
+      return {
+        ...data,
+        name: cityName,
+        main: {
+          temp: data.current.temperature_2m,
+          feels_like: data.current.apparent_temperature,
+          humidity: data.current.relative_humidity_2m,
+          pressure: data.current.pressure_msl
+        },
+        wind: {
+          speed: data.current.wind_speed_10m / 3.6
+        },
+        weather: [{
+          code: data.current.weather_code,
+          description: getWmoDescription(data.current.weather_code)
+        }]
+      };
     },
     enabled: !!city || !!coords,
     staleTime: 1000 * 60 * 15,
   });
+};
+
+export const getWmoDescription = (code: number): string => {
+  const descriptions: Record<number, string> = {
+    0: 'Céu limpo',
+    1: 'Principalmente limpo', 2: 'Parcialmente nublado', 3: 'Encoberto',
+    45: 'Nevoeiro', 48: 'Nevoeiro com geada',
+    51: 'Chuvisco leve', 53: 'Chuvisco moderado', 55: 'Chuvisco denso',
+    61: 'Chuva leve', 63: 'Chuva moderada', 65: 'Chuva forte',
+    71: 'Neve leve', 73: 'Neve moderada', 75: 'Neve forte',
+    80: 'Pancadas de chuva leves', 81: 'Pancadas de chuva moderadas', 82: 'Pancadas de chuva violentas',
+    95: 'Trovoada', 96: 'Trovoada com granizo leve', 99: 'Trovoada com granizo forte'
+  };
+  return descriptions[code] || 'Desconhecido';
 };

@@ -4,8 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Navigation, History, Star, Cloud } from 'lucide-react';
-import { useWeather, useForecast } from '@/hooks/useWeather';
+import { useWeather } from '@/hooks/useWeather';
 import WeatherCard from '@/components/WeatherCard';
+import WeatherIcon from '@/components/WeatherIcon';
 import { showSuccess, showError } from '@/utils/toast';
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { motion } from 'framer-motion';
@@ -17,7 +18,6 @@ const Index = () => {
   const [history, setHistory] = useState<string[]>([]);
 
   const { data: weather, isLoading, error } = useWeather(city, coords);
-  const { data: forecast } = useForecast(city, coords);
 
   useEffect(() => {
     const savedHistory = localStorage.getItem('weather_history');
@@ -53,10 +53,16 @@ const Index = () => {
     );
   };
 
+  const dailyForecast = weather?.daily?.time?.map((time: string, i: number) => ({
+    date: time,
+    max: weather.daily.temperature_2m_max[i],
+    min: weather.daily.temperature_2m_min[i],
+    code: weather.daily.weather_code[i]
+  }));
+
   return (
     <div className="min-h-screen p-4 md:p-10 text-slate-100">
       <div className="max-w-6xl mx-auto space-y-12">
-        {/* Header Reorganizado */}
         <header className="flex flex-col gap-8 items-center">
           <motion.div 
             initial={{ opacity: 0, y: -20 }}
@@ -99,47 +105,43 @@ const Index = () => {
         </header>
 
         <main className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-          {/* Main Content */}
           <div className="lg:col-span-8 space-y-10">
             {isLoading ? (
               <div className="h-[500px] bg-white/5 animate-pulse rounded-[2.5rem] border border-white/5" />
             ) : error ? (
               <div className="p-12 bg-red-500/10 border border-red-500/20 text-red-400 rounded-[2.5rem] text-center font-medium">
-                Cidade não encontrada. Verifique o nome e tente novamente.
+                Cidade não encontrada ou erro na API.
               </div>
             ) : (
               <WeatherCard data={weather} />
             )}
 
-            {/* Forecast */}
             <section className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-[2.5rem] p-8">
               <h3 className="text-2xl font-bold mb-8 flex items-center gap-3">
                 <span className="w-2 h-8 bg-blue-500 rounded-full" />
                 Previsão Semanal
               </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-                {forecast?.list?.filter((_: any, i: number) => i % 8 === 0).map((item: any) => (
+              <div className="grid grid-cols-2 sm:grid-cols-7 gap-4">
+                {dailyForecast?.map((item: any) => (
                   <motion.div 
-                    key={item.dt}
+                    key={item.date}
                     whileHover={{ y: -5 }}
-                    className="flex flex-col items-center p-6 bg-white/5 rounded-3xl border border-white/5 hover:bg-white/10 transition-colors"
+                    className="flex flex-col items-center p-4 bg-white/5 rounded-3xl border border-white/5 hover:bg-white/10 transition-colors"
                   >
-                    <span className="text-sm font-bold text-blue-200/50 uppercase tracking-wider mb-3">
-                      {new Date(item.dt * 1000).toLocaleDateString('pt-BR', { weekday: 'short' })}
+                    <span className="text-xs font-bold text-blue-200/50 uppercase tracking-wider mb-3">
+                      {new Date(item.date + 'T00:00:00').toLocaleDateString('pt-BR', { weekday: 'short' })}
                     </span>
-                    <img 
-                      src={`https://openweathermap.org/img/wn/${item.weather[0].icon}@2x.png`} 
-                      alt="weather"
-                      className="w-16 h-16 drop-shadow-md"
-                    />
-                    <span className="text-2xl font-black mt-2">{Math.round(item.main.temp)}°</span>
+                    <WeatherIcon code={item.code} className="w-10 h-10 mb-2" />
+                    <div className="flex flex-col items-center">
+                      <span className="text-xl font-black">{Math.round(item.max)}°</span>
+                      <span className="text-xs text-slate-500 font-bold">{Math.round(item.min)}°</span>
+                    </div>
                   </motion.div>
                 ))}
               </div>
             </section>
           </div>
 
-          {/* Sidebar */}
           <aside className="lg:col-span-4 space-y-8">
             <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-[2.5rem] p-8">
               <div className="flex items-center gap-3 mb-6">
@@ -151,7 +153,10 @@ const Index = () => {
                 {history.map((item) => (
                   <button
                     key={item}
-                    onClick={() => setCity(item)}
+                    onClick={() => {
+                      setCoords(null);
+                      setCity(item);
+                    }}
                     className="w-full text-left px-5 py-4 rounded-2xl bg-white/5 hover:bg-blue-600/20 border border-white/5 hover:border-blue-500/30 text-slate-300 font-medium transition-all capitalize flex justify-between items-center group"
                   >
                     {item}

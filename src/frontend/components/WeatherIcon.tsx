@@ -3,16 +3,16 @@
 import React from 'react';
 import { 
   Sun, Cloud, CloudRain, CloudLightning, 
-  CloudSnow, Wind, CloudDrizzle, Moon 
+  CloudSnow, Wind, CloudDrizzle, CloudFog
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface WeatherIconProps {
-  condition: string;
+  code: number;
   className?: string;
 }
 
-const WeatherIcon = ({ condition, className = "w-12 h-12" }: WeatherIconProps) => {
+const WeatherIcon = ({ code, className = "w-12 h-12" }: WeatherIconProps) => {
   const iconProps = { className };
   
   const containerVariants = {
@@ -27,13 +27,13 @@ const WeatherIcon = ({ condition, className = "w-12 h-12" }: WeatherIconProps) =
   };
 
   const renderIcon = () => {
-    const cond = condition.toLowerCase();
-    if (cond.includes('clear')) return <Sun {...iconProps} className={`${className} text-yellow-400`} />;
-    if (cond.includes('cloud')) return <Cloud {...iconProps} className={`${className} text-gray-400`} />;
-    if (cond.includes('rain')) return <CloudRain {...iconProps} className={`${className} text-blue-400`} />;
-    if (cond.includes('thunderstorm')) return <CloudLightning {...iconProps} className={`${className} text-purple-500`} />;
-    if (cond.includes('snow')) return <CloudSnow {...iconProps} className={`${className} text-blue-100`} />;
-    if (cond.includes('drizzle')) return <CloudDrizzle {...iconProps} className={`${className} text-blue-300`} />;
+    if (code === 0) return <Sun {...iconProps} className={`${className} text-yellow-400`} />;
+    if ([1, 2, 3].includes(code)) return <Cloud {...iconProps} className={`${className} text-gray-400`} />;
+    if ([45, 48].includes(code)) return <CloudFog {...iconProps} className={`${className} text-slate-400`} />;
+    if ([51, 53, 55].includes(code)) return <CloudDrizzle {...iconProps} className={`${className} text-blue-300`} />;
+    if ([61, 63, 65, 80, 81, 82].includes(code)) return <CloudRain {...iconProps} className={`${className} text-blue-400`} />;
+    if ([71, 73, 75, 85, 86].includes(code)) return <CloudSnow {...iconProps} className={`${className} text-blue-100`} />;
+    if ([95, 96, 99].includes(code)) return <CloudLightning {...iconProps} className={`${className} text-purple-500`} />;
     return <Wind {...iconProps} className={`${className} text-teal-400`} />;
   };
 

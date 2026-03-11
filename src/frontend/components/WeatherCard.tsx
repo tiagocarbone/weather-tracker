@@ -13,18 +13,16 @@ interface WeatherCardProps {
 const WeatherCard = ({ data }: WeatherCardProps) => {
   if (!data) return null;
 
-  // Paleta de azuis profundos baseada na condição
-  const themeColors: Record<string, string> = {
-    Clear: 'from-blue-600 to-indigo-900',
-    Clouds: 'from-slate-700 to-slate-900',
-    Rain: 'from-blue-800 to-blue-950',
-    Thunderstorm: 'from-indigo-900 to-purple-950',
-    Snow: 'from-blue-900 to-slate-800',
-    Drizzle: 'from-cyan-900 to-blue-950',
+  const getBgGradient = (code: number) => {
+    if (code === 0) return 'from-blue-500 to-indigo-700';
+    if ([1, 2, 3].includes(code)) return 'from-slate-600 to-slate-800';
+    if ([61, 63, 65, 80, 81, 82].includes(code)) return 'from-blue-800 to-blue-950';
+    if ([95, 96, 99].includes(code)) return 'from-indigo-900 to-purple-950';
+    return 'from-blue-900 to-slate-900';
   };
 
-  const condition = data.weather[0].main;
-  const bgGradient = themeColors[condition] || 'from-blue-900 to-slate-900';
+  const code = data.weather[0].code;
+  const bgGradient = getBgGradient(code);
 
   return (
     <motion.div
@@ -42,7 +40,7 @@ const WeatherCard = ({ data }: WeatherCardProps) => {
               </div>
               <p className="text-xl capitalize text-blue-200/80 font-medium">{data.weather[0].description}</p>
             </div>
-            <WeatherIcon condition={condition} className="w-28 h-28 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]" />
+            <WeatherIcon code={code} className="w-28 h-28 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]" />
           </div>
 
           <div className="mt-12 flex items-baseline gap-4">
@@ -79,7 +77,7 @@ const WeatherCard = ({ data }: WeatherCardProps) => {
               </div>
               <div className="text-center">
                 <span className="block text-xs uppercase tracking-widest text-blue-200/50 font-bold mb-1">Pressão</span>
-                <span className="text-xl font-bold">{data.main.pressure} <small className="text-[10px]">hPa</small></span>
+                <span className="text-xl font-bold">{Math.round(data.main.pressure)} <small className="text-[10px]">hPa</small></span>
               </div>
             </div>
           </div>
