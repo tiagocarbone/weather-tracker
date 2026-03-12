@@ -1,7 +1,8 @@
 "use client";
 
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import WeatherIcon from './WeatherIcon';
+import WeatherBackground from './WeatherBackground';
 import WeatherIcon from './WeatherIcon';
 import WeatherBackground from './WeatherBackground';
 import { motion } from 'framer-motion';
@@ -25,23 +26,29 @@ const WeatherCard = ({ data }: WeatherCardProps) => {
   const code = data.weather[0].code;
   const bgGradient = getBgGradient(code);
 
+  const nameParts = (data.name || '').split(',').map((s: string) => s.trim()).filter(Boolean);
+  const titleName = nameParts.length > 0 ? nameParts[0] : data.name;
+  const locationSubtitle = nameParts.length > 1 ? nameParts.slice(1).join(', ') : '';
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
     >
-      <Card className={`relative overflow-hidden border border-white/10 shadow-2xl bg-gradient-to-br ${bgGradient} text-white rounded-[2rem]`}>
-        {/* Fundo Animado Dinâmico */}
+      <div className={`relative overflow-hidden border border-white/10 shadow-2xl bg-gradient-to-br ${bgGradient} text-white rounded-[2rem]`}>
         <WeatherBackground code={code} />
 
-        <CardContent className="p-8 relative z-10">
+        <div className="p-8 relative z-10">
           <div className="flex justify-between items-start">
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <MapPin size={18} className="text-blue-400" />
-                <h2 className="text-3xl font-bold tracking-tight">{data.name}</h2>
+                <h2 className="text-3xl font-bold tracking-tight">{titleName}</h2>
               </div>
+              {locationSubtitle && (
+                <p className="text-sm text-blue-100/70 font-medium mb-1">{locationSubtitle}</p>
+              )}
               <p className="text-lg capitalize text-blue-200/80 font-medium">{data.weather[0].description}</p>
             </div>
             <WeatherIcon code={code} className="w-20 h-20 drop-shadow-[0_0_12px_rgba(255,255,255,0.3)]" />
@@ -85,8 +92,8 @@ const WeatherCard = ({ data }: WeatherCardProps) => {
               </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </motion.div>
   );
 };

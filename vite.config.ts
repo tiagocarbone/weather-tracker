@@ -1,17 +1,21 @@
-import { defineConfig } from "vite";
-import dyadComponentTagger from "@dyad-sh/react-vite-component-tagger";
-import react from "@vitejs/plugin-react-swc";
-import path from "path";
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react-swc';
+import { resolve } from 'path';
 
-export default defineConfig(() => ({
-  server: {
-    host: "::",
-    port: 8080,
-  },
-  plugins: [dyadComponentTagger(), react()],
+export default defineConfig({
+  plugins: [react()],
   resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src/frontend"),
-    },
+    // Frontend source lives under src/frontend; map @ to that folder so imports like
+    // '@/components/...' resolve to src/frontend/components/...
+    alias: [{ find: '@', replacement: resolve(__dirname, 'src/frontend') }],
   },
-}));
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+        secure: false,
+      }
+    }
+  }
+});

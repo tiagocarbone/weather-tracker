@@ -1,40 +1,39 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Search, Navigation, History, Star, Cloud } from 'lucide-react';
-import { useWeather } from '@/hooks/useWeather';
-import WeatherCard from '@/components/WeatherCard';
-import WeatherIcon from '@/components/WeatherIcon';
-import { showSuccess, showError } from '@/utils/toast';
-import { MadeWithDyad } from "@/components/made-with-dyad";
+import React, { useState } from 'react';
+import Autocomplete from '../components/Autocomplete';
+import Button from '../components/Button';
+import { Navigation, Cloud } from 'lucide-react';
+import { useWeather } from '../hooks/useWeather';
+import WeatherCard from '../components/WeatherCard';
+import WeatherIcon from '../components/WeatherIcon';
+import { showSuccess, showError } from '../utils/toast';
 import { motion } from 'framer-motion';
 
 const Index = () => {
-  const [search, setSearch] = useState('');
-  const [city, setCity] = useState('São Paulo');
-  const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null);
-  const [history, setHistory] = useState<string[]>([]);
+  // Start the app showing Rio de Janeiro by default (will trigger the weather fetch)
+  const [city, setCity] = useState('Rio de Janeiro');
+  const [coords, setCoords] = useState<{ lat: number; lon: number; display?: string } | null>(null);
+  const [selected, setSelected] = useState<{ lat: number; lon: number; display: string } | null>(null);
 
   const { data: weather, isLoading, error } = useWeather(city, coords);
 
-  useEffect(() => {
-    const savedHistory = localStorage.getItem('weather_history');
-    if (savedHistory) setHistory(JSON.parse(savedHistory));
-  }, []);
+  
+
+  // history/favorites feature removed
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!search.trim()) return;
-    
-    setCoords(null);
-    setCity(search);
-    
-    const newHistory = [search, ...history.filter(h => h !== search)].slice(0, 5);
-    setHistory(newHistory);
-    localStorage.setItem('weather_history', JSON.stringify(newHistory));
-    setSearch('');
+    // Only allow searching by a selected suggestion
+    if (!selected) {
+      showError('Selecione uma cidade das sugestões.');
+      return;
+    }
+
+    setCoords({ lat: selected.lat, lon: selected.lon });
+    setCity('');
+    // clear selection input (component manages its own query state)
+    setSelected(null);
   };
 
   const handleGeolocation = () => {
@@ -59,6 +58,8 @@ const Index = () => {
     min: weather.daily.temperature_2m_min[i],
     code: weather.daily.weather_code[i]
   }));
+  // show only the next 5 days (skip today)
+  const nextFiveDays = dailyForecast?.slice(1, 6);
 
   return (
     <div className="min-h-screen p-4 md:p-10 text-slate-100">
@@ -82,37 +83,26 @@ const Index = () => {
               Desktop (md+): 12-column grid where input spans 8 cols and buttons span 4 cols,
               so they visually align with the content columns below.
           */}
-          <form onSubmit={handleSearch} className="w-full grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-            <div className="relative md:col-span-8">
-              <Input 
-                placeholder="Buscar cidade..." 
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="rounded-2xl pl-14 bg-white/5 border-white/10 text-white placeholder:text-slate-500 h-14 text-lg focus-visible:ring-blue-500 focus-visible:bg-white/10 transition-all w-full"
-              />
-              <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500" size={24} />
+          <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
+            <div className="relative lg:col-span-8">
+              <div className="relative">
+                <Autocomplete onSelect={(s) => { setCity(s.display); setCoords({ lat: s.lat, lon: s.lon, display: s.display }); setSelected({ lat: s.lat, lon: s.lon, display: s.display }); }} />
+              </div>
             </div>
 
-            <div className="md:col-span-4">
-              <div className="flex flex-col md:flex-row gap-3 w-full">
-                <Button
-                  type="submit"
-                  className="w-full md:w-auto flex-1 rounded-2xl bg-blue-600 hover:bg-blue-500 h-14 px-10 text-lg font-bold shadow-lg shadow-blue-900/40"
-                >
-                  Buscar
-                </Button>
-                <Button 
-                  type="button" 
-                  variant="outline" 
+            <div className="lg:col-span-4">
+              <div className="flex flex-col md:flex-row gap-3 w-full h-full">
+                <button
+                  type="button"
                   onClick={handleGeolocation}
-                  className="w-full md:w-auto flex-1 rounded-2xl border-white/10 bg-white/5 h-14 px-8 hover:bg-white/10 flex items-center gap-3 font-semibold text-lg"
+                  className="w-full md:w-auto rounded-2xl border border-white/10 bg-white/5 h-14 px-8 hover:bg-white/10 flex items-center gap-3 font-semibold text-lg"
                 >
                   <Navigation size={20} className="text-blue-400" />
                   <span>Usar meu local</span>
-                </Button>
+                </button>
               </div>
             </div>
-          </form>
+          </div>
         </header>
 
         <main className="grid grid-cols-1 lg:grid-cols-12 gap-10">
@@ -127,75 +117,45 @@ const Index = () => {
               <WeatherCard data={weather} />
             )}
 
-            <section className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-[2.5rem] p-8">
-              <h3 className="text-2xl font-bold mb-8 flex items-center gap-3">
-                <span className="w-2 h-8 bg-blue-500 rounded-full" />
-                Previsão Semanal
+            {/* keep main column focused on the large WeatherCard; side forecast moved to aside */}
+          </div>
+          <aside className="lg:col-span-4">
+            <section className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4">
+              <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                <span className="w-2 h-6 bg-blue-500 rounded-full" />
+                Previsão - Próximos 5 dias
               </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-7 gap-4">
-                {dailyForecast?.map((item: any) => (
-                  <motion.div 
+              <div className="flex flex-col gap-3">
+                {nextFiveDays?.map((item: any) => (
+                  <motion.div
                     key={item.date}
-                    whileHover={{ y: -5 }}
-                    className="flex flex-col items-center p-4 bg-white/5 rounded-3xl border border-white/5 hover:bg-white/10 transition-colors"
+                    whileHover={{ x: 4 }}
+                    className="flex items-center justify-between p-3 bg-white/3 rounded-lg border border-white/5 hover:bg-white/6 transition-colors"
                   >
-                    <span className="text-xs font-bold text-blue-200/50 uppercase tracking-wider mb-3">
-                      {new Date(item.date + 'T00:00:00').toLocaleDateString('pt-BR', { weekday: 'short' })}
-                    </span>
-                    <WeatherIcon code={item.code} className="w-10 h-10 mb-2" />
-                    <div className="flex flex-col items-center">
-                      <span className="text-xl font-black">{Math.round(item.max)}°</span>
-                      <span className="text-xs text-slate-500 font-bold">{Math.round(item.min)}°</span>
+                    <div className="flex items-center gap-3">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-blue-200/80">
+                          {new Date(item.date + 'T00:00:00').toLocaleDateString('pt-BR', { weekday: 'short' })}
+                        </span>
+                        <span className="text-xs text-slate-400">{new Date(item.date + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                      <WeatherIcon code={item.code} className="w-8 h-8" />
+                      <div className="text-right">
+                        <div className="text-sm font-bold">{Math.round(item.max)}°</div>
+                        <div className="text-xs text-slate-400">{Math.round(item.min)}°</div>
+                      </div>
                     </div>
                   </motion.div>
                 ))}
               </div>
             </section>
-          </div>
-
-          <aside className="lg:col-span-4 space-y-8">
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-[2.5rem] p-8">
-              <div className="flex items-center gap-3 mb-6">
-                <History size={22} className="text-blue-400" />
-                <h3 className="text-xl font-bold">Recentes</h3>
-              </div>
-              <div className="space-y-3">
-                {history.length === 0 && <p className="text-slate-500 text-sm italic">Nenhuma busca recente.</p>}
-                {history.map((item) => (
-                  <button
-                    key={item}
-                    onClick={() => {
-                      setCoords(null);
-                      setCity(item);
-                    }}
-                    className="w-full text-left px-5 py-4 rounded-2xl bg-white/5 hover:bg-blue-600/20 border border-white/5 hover:border-blue-500/30 text-slate-300 font-medium transition-all capitalize flex justify-between items-center group"
-                  >
-                    {item}
-                    <Search size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-br from-blue-600 to-indigo-800 rounded-[2.5rem] p-8 text-white shadow-2xl shadow-blue-900/20 relative overflow-hidden group">
-              <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all" />
-              <div className="relative z-10">
-                <div className="flex items-center gap-3 mb-4">
-                  <Star size={24} className="text-yellow-400 fill-yellow-400" />
-                  <h3 className="text-xl font-bold">Favoritos</h3>
-                </div>
-                <p className="text-blue-100/70 text-sm leading-relaxed mb-6">
-                  Mantenha suas cidades mais importantes sempre à mão.
-                </p>
-                <Button variant="secondary" className="w-full rounded-2xl bg-white/10 border-none text-white hover:bg-white/20 h-12 font-bold backdrop-blur-md">
-                  Salvar {weather?.name || 'Cidade'}
-                </Button>
-              </div>
-            </div>
           </aside>
         </main>
       </div>
-      <MadeWithDyad />
+      {/* MadeWithDyad component removed */}
     </div>
   );
 };

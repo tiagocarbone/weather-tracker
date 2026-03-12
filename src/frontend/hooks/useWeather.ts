@@ -9,25 +9,34 @@ export const useWeather = (city: string | null, coords?: { lat: number; lon: num
   return useQuery({
     queryKey: ['weather-data', city, coords],
     queryFn: async () => {
-      let lat = coords?.lat;
-      let lon = coords?.lon;
-      let cityName = city;
+  let lat = coords?.lat;
+  let lon = coords?.lon;
+  // start with explicit city string if provided
+  let cityName = city || undefined;
 
-      // Geocoding: transforma nome da cidade em coordenadas
-      if (!lat && !lon && city) {
-        const geoRes = await fetch(`${GEO_URL}?name=${encodeURIComponent(city)}&count=1&language=pt&format=json`);
-        const geoData = await geoRes.json();
-        
-        if (!geoData.results || geoData.results.length === 0) {
-          throw new Error('Cidade não encontrada');
-        }
-        
-        lat = geoData.results[0].latitude;
-        lon = geoData.results[0].longitude;
-        cityName = geoData.results[0].name;
-      }
+  // If caller passed a display string along with coords (e.g. from Autocomplete), prefer it
+  if ((coords as any)?.display) {
+    cityName = (coords as any).display;
+  }
 
-      if (lat === undefined || lon === undefined) return null;
+  // Geocoding: transforma nome da cidade em coordenadas (only if we don't already have lat/lon)
+  if ((lat === undefined || lon === undefined) && city) {
+    const geoRes = await fetch(`${GEO_URL}?name=${encodeURIComponent(city)}&count=1&language=pt&format=json`);
+    const geoData = await geoRes.json();
+    
+    if (!geoData.results || geoData.results.length === 0) {
+      throw new Error('Cidade não encontrada');
+    }
+    
+    const g = geoData.results[0];
+    lat = g.latitude;
+    lon = g.longitude;
+    // Prefer a structured display: "Name, Admin1 (state), Country" when available
+    // This ensures the UI shows e.g. "Rio de Janeiro, Rio de Janeiro, Brasil"
+    cityName = `${g.name}${g.admin1 ? `, ${g.admin1}` : ''}${g.country ? `, ${g.country}` : ''}`;
+  }
+
+  if (lat === undefined || lon === undefined) return null;
 
       // Busca clima atual e previsão diária
       const url = `${WEATHER_URL}?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,pressure_msl,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto`;

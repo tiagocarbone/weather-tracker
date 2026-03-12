@@ -15,16 +15,17 @@ interface WeatherIconProps {
 const WeatherIcon = ({ code, className = "w-12 h-12" }: WeatherIconProps) => {
   const iconProps = { className };
   
+  // framer-motion typing expects easing to be a function or array; use an explicit transition object
   const containerVariants = {
     animate: {
       y: [0, -5, 0],
       transition: {
         duration: 3,
         repeat: Infinity,
-        ease: "easeInOut"
+        ease: [0.42, 0, 0.58, 1]
       }
     }
-  };
+  } as any;
 
   const renderIcon = () => {
     if (code === 0) return <Sun {...iconProps} className={`${className} text-yellow-400`} />;
