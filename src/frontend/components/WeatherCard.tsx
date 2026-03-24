@@ -1,8 +1,7 @@
 "use client";
 
 import React from 'react';
-import WeatherIcon from './WeatherIcon';
-import WeatherBackground from './WeatherBackground';
+
 import WeatherIcon from './WeatherIcon';
 import WeatherBackground from './WeatherBackground';
 import { motion } from 'framer-motion';

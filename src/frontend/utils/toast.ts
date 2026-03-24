@@ -1,3 +1,4 @@
+
 import { toast as appToast } from "@/hooks/use-toast";
 
 export const showSuccess = (message: string) => {
@@ -22,3 +23,4 @@ export const dismissToast = (toastId: string) => {
   // No-op for compatibility.
   return;
 };
+
